@@ -1,0 +1,22 @@
+udo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t wscho/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run wscho/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t wscho/multi-client ./client
+  - docker build -t wscho/mulit-nginx ./nginx
+  - docker build -t wscho/multi-server ./server
+  - docker build -t wscho/multi-worker ./worker
+
+  # log in to the docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push wscho/multi-client
+  - docker push wscho/multi-nginx
+  - docker push wscho/mulit-server
+  - docker push wscho/multi-worker
